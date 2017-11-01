@@ -1,0 +1,25 @@
+{
+    "name": "sunel/aspect-me",
+    "description": "Intercept and change the behavior of a public method of a class before, after, or around that function call.",
+    "keywords": ["plugin", "aop", "aspect", "intercept"],
+    "license": "MIT",
+    "homepage": "https://github.com/sunel/aspect-me",
+    "support": {
+        "issues": "https://github.com/sunel/aspect-me/issues",
+        "source": "https://github.com/sunel/aspect-me"
+    },
+    "authors": [
+        {
+            "name": "Sunel Tr",
+            "email": "sunelbe@gmail.com"
+        }
+    ],
+    "require": {
+        "zendframework/zend-code":"3.3.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aspect\\": "src/"
+        }
+    }
+}
