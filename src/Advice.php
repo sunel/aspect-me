@@ -27,7 +27,7 @@ class Advice {
      *
      * @return void
      */
-    public static function before($id, $target, $macro, $sortOrder)
+    public static function before($id, $target, $macro, $sortOrder = 10)
     {
         static::register($id, static::BEFORE, $target, $macro, $sortOrder);
     }
@@ -42,7 +42,7 @@ class Advice {
      *
      * @return void
      */
-    public static function around($id, $target, $macro, $sortOrder)
+    public static function around($id, $target, $macro, $sortOrder = 10)
     {
         static::register($id, static::AROUND, $target, $macro, $sortOrder);
     }
@@ -58,7 +58,7 @@ class Advice {
      *
      * @return void
      */
-    public static function after($id, $target, $macro, $sortOrder)
+    public static function after($id, $target, $macro, $sortOrder = 10)
     {
         static::register($id, static::AFTER, $target, $macro, $sortOrder);
     }
@@ -74,13 +74,23 @@ class Advice {
      *
      * @return void
      */
-    public static function register($id, $joinPoint, $target, $macro, $sortOrder)
+    public static function register($id, $joinPoint, $target, $macro, $sortOrder = 10)
     {
-        static::$advices[$target][$joinPoint][] = $macro;
+
+        list($target, $method) = static::parseTarget($target);
+
+        if(!$method) {
+            return;
+        }
+
+        static::$advices[$target][$method][$joinPoint][$id] = [
+            'weaver' => $macro,
+            'order' => $sortOrder,
+        ];
     }
 
     /**
-     * Get the registed advice for particular join point.
+     * Get the registed advice for particular join point for a target.
      *
      * @param  string $joinPoint
      * @param  string $target
@@ -90,6 +100,40 @@ class Advice {
     public static function get($joinPoint, $target)
     {
     	return static::$advices[$target][$joinPoint];
+    }
+
+    /**
+     * Get all the registed advice.
+     *
+     * @return array
+     */
+    public static function all()
+    {
+        return static::$advices;
+    }
+
+
+    protected static function parseTarget($target)
+    {
+        return static::contains($target, '@') ? explode('@', $target, 2) : [$target, false];
+    }
+
+    /**
+     * Determine if a given string contains a given substring.
+     *
+     * @param  string  $haystack
+     * @param  string|array  $needles
+     * @return bool
+     */
+    protected static function contains($haystack, $needles)
+    {
+        foreach ((array) $needles as $needle) {
+            if ($needle !== '' && mb_strpos($haystack, $needle) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }
