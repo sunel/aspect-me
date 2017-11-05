@@ -97,9 +97,17 @@ class Advice {
      *
      * @return array
      */
-    public static function get($joinPoint, $target)
+    public static function get($target)
     {
-    	return static::$advices[$target][$joinPoint];
+        list($target, $method) = static::parseTarget($target);
+
+        if(!$method) {
+            return [];
+        }
+
+    	return isset(static::$advices[$target][$method]) ?
+                static::$advices[$target][$method]
+                : [];
     }
 
     /**

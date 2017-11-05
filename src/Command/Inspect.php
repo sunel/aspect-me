@@ -91,6 +91,7 @@ class Inspect extends Command
 
     	$classCode->setName($className)
     		->setExtendedClass($extends)
+    		->addUse(Advice::class)
     		->addTraits(['\\'.Proxified::class])
     		->addMethods($methods);
 
@@ -130,11 +131,12 @@ class Inspect extends Command
         $reflectionClass = new \ReflectionClass($source);
         $constructor = $reflectionClass->getConstructor();
         $parameters = [];
+        $body = "\$this->initlize();\n";
         if ($constructor) {
             foreach ($constructor->getParameters() as $parameter) {
                 $parameters[] = $this->getMethodParameterInfo($parameter);
             }
-            $body = count($parameters)
+            $body .= count($parameters)
                 ? "parent::__construct({$this->getParameterList($parameters)});"
                 : "parent::__construct();";
         }
@@ -173,13 +175,13 @@ class Inspect extends Command
         $methodInfo = [
             'name' => ($method->returnsReference() ? '& ' : '') . $method->getName(),
             'parameters' => $parameters,
-            'body' => "\$pluginList = \$this->plugin->get(\$this->subject, '{$method->getName()}');\n" .
-                "if (\$pluginList === false) {\n" .
+            'body' => "\$adviceList = Advice::get(\$this->subject.'@{$method->getName()}');\n" .
+                "if (empty(\$adviceList)) {\n" .
                 "    return parent::{$method->getName()}({$this->getParameterList(
                 $parameters
             )});\n" .
             "} else {\n" .
-            "    return \$this->callPlugins('{$method->getName()}', func_get_args(), \$pluginList);\n" .
+            "    return \$this->callAdvices('{$method->getName()}', func_get_args(), \$adviceList);\n" .
             "}",
             'returnType' => $method->getReturnType(),
             'docblock' => ['shortDescription' => '{@inheritdoc}'],
