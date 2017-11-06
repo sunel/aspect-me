@@ -2,17 +2,16 @@
 
 namespace Aspect;
 
-
 trait Proxified
 {
-	/**
+    /**
      * The parent class.
      *
      * @var string
      */
-	protected $subject;
+    protected $subject;
 
-	/**
+    /**
      * Initialize the Interceptor
      *
      * @return void
@@ -46,28 +45,27 @@ trait Proxified
     {
         $subject = $this;
        
-    	$capMethod = ucfirst($method);
+        $capMethod = ucfirst($method);
 
-    	$container = Advice::getObjectResolver();
+        $container = Advice::getObjectResolver();
 
-    	if (isset($adviceList[Advice::BEFORE])) {
-
-    		$beforeList = $this->sortBy(function($item) {
-	        	return $item['order'];
-	        }, $adviceList[Advice::BEFORE]);
+        if (isset($adviceList[Advice::BEFORE])) {
+            $beforeList = $this->sortBy(function ($item) {
+                return $item['order'];
+            }, $adviceList[Advice::BEFORE]);
 
             // Call 'before' listeners
             foreach ($beforeList as $code) {
-            	$callable = $code['weaver'];
-            	if($this->useAsCallable($callable)) {
-            		$beforeResult = $callable($subject, ...array_values($arguments));
-            	} else {
-            		$pluginInstance = $container($callable);
-            		if($pluginInstance !== false) {
-		                $pluginMethod = 'before' . $capMethod;
-		                $beforeResult = $pluginInstance->$pluginMethod($subject, ...array_values($arguments));
-		            }
-	            }
+                $callable = $code['weaver'];
+                if ($this->useAsCallable($callable)) {
+                    $beforeResult = $callable($subject, ...array_values($arguments));
+                } else {
+                    $pluginInstance = $container($callable);
+                    if ($pluginInstance !== false) {
+                        $pluginMethod = 'before' . $capMethod;
+                        $beforeResult = $pluginInstance->$pluginMethod($subject, ...array_values($arguments));
+                    }
+                }
 
                 if ($beforeResult !== null) {
                     $arguments = (array)$beforeResult;
@@ -75,34 +73,34 @@ trait Proxified
             }
         }
 
-       if (isset($adviceList[Advice::AROUND])) {
+        if (isset($adviceList[Advice::AROUND])) {
 
-       		// Call 'around' listener
-       		$aroundList = $this->sortBy(function($item) {
-	        	return $item['order'];
-	        }, $adviceList[Advice::AROUND]);	        
+               // Call 'around' listener
+            $aroundList = $this->sortBy(function ($item) {
+                return $item['order'];
+            }, $adviceList[Advice::AROUND]);
 
-	        $next = function (...$arguments) use ($subject, $method, $capMethod, &$aroundList, &$next) {
-	        	list(, $code) = each($aroundList);
-	        	if(!is_null($code)) {
-	        	 	$callable = $code['weaver'];
-		            if($this->useAsCallable($callable)) {
-		        		$result = $callable($subject, $next, ...array_values($arguments));
-		        	} else { 
-		        		$pluginInstance = $container($callable);
-		        		if($pluginInstance !== false) {                  
-			                $pluginMethod = 'around' . $capMethod;
-			                $result = $pluginInstance->$pluginMethod($subject, ...array_values($arguments));
-			            } else {
-			            	$result = $next(...array_values($arguments));
-			            }
-		            }
-		        } else {
-		        	$result = $subject->callParent($method, $arguments);
-		        }
+            $next = function (...$arguments) use ($subject, $method, $capMethod, &$aroundList, &$next) {
+                list(, $code) = each($aroundList);
+                if (!is_null($code)) {
+                    $callable = $code['weaver'];
+                    if ($this->useAsCallable($callable)) {
+                        $result = $callable($subject, $next, ...array_values($arguments));
+                    } else {
+                        $pluginInstance = $container($callable);
+                        if ($pluginInstance !== false) {
+                            $pluginMethod = 'around' . $capMethod;
+                            $result = $pluginInstance->$pluginMethod($subject, ...array_values($arguments));
+                        } else {
+                            $result = $next(...array_values($arguments));
+                        }
+                    }
+                } else {
+                    $result = $subject->callParent($method, $arguments);
+                }
 
-		        return $result;
-	        };           	     
+                return $result;
+            };
 
             $result = $next(...array_values($arguments));
         } else {
@@ -111,28 +109,26 @@ trait Proxified
         }
 
         if (isset($adviceList[Advice::AFTER])) {
-
-    		$afterList = $this->sortBy(function($item) {
-	        	return $item['order'];
-	        }, $adviceList[Advice::AFTER]);
+            $afterList = $this->sortBy(function ($item) {
+                return $item['order'];
+            }, $adviceList[Advice::AFTER]);
 
             // Call 'after' listeners
             foreach ($afterList as $code) {
-            	$callable = $code['weaver'];
-            	if($this->useAsCallable($callable)) {
-            		$result = $callable($subject, $result, ...array_values($arguments));
-            	} else {
-            		$pluginInstance = $container($callable); 
-            		if($pluginInstance !== false) {              
-		                $pluginMethod = 'after' . $capMethod;
-		                $result = $pluginInstance->$pluginMethod($subject, $result, ...array_values($arguments));
-		            }
-	            }
+                $callable = $code['weaver'];
+                if ($this->useAsCallable($callable)) {
+                    $result = $callable($subject, $result, ...array_values($arguments));
+                } else {
+                    $pluginInstance = $container($callable);
+                    if ($pluginInstance !== false) {
+                        $pluginMethod = 'after' . $capMethod;
+                        $result = $pluginInstance->$pluginMethod($subject, $result, ...array_values($arguments));
+                    }
+                }
             }
         }
 
         return $result;
-        
     }
 
     /**

@@ -1,10 +1,9 @@
 <?php 
 namespace Aspect;
 
-
-class Advice {
-
-	const BEFORE = 'before';
+class Advice
+{
+    const BEFORE = 'before';
 
     const AROUND = 'around';
 
@@ -17,7 +16,7 @@ class Advice {
      */
     protected static $objectResolver;
 
-	/**
+    /**
      * The registered advice for particular join point.
      *
      * @var array
@@ -83,10 +82,9 @@ class Advice {
      */
     public static function register($id, $joinPoint, $target, $macro, $sortOrder = 10)
     {
-
         list($target, $method) = static::parseTarget($target);
 
-        if(!$method) {
+        if (!$method) {
             return;
         }
 
@@ -108,13 +106,13 @@ class Advice {
     {
         list($target, $method) = static::parseTarget($target);
 
-        if(!$method) {
+        if (!$method) {
             return isset(static::$advices[$target]) ?
                 static::$advices[$target]
                 : [];
         }
 
-    	return isset(static::$advices[$target][$method]) ?
+        return isset(static::$advices[$target][$method]) ?
                 static::$advices[$target][$method]
                 : [];
     }
@@ -156,7 +154,7 @@ class Advice {
     /**
      * Get the Object Resolver Instance.
      *
-     * @return \Closure 
+     * @return \Closure
      */
     public static function getObjectResolver()
     {
@@ -173,5 +171,4 @@ class Advice {
     {
         static::$objectResolver = $objectResolver;
     }
-
 }

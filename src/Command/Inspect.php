@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Inspect extends Command
 {
-	/**
+    /**
      * The application container.
      *
      * @var \Psr\Container\ContainerInterface
@@ -36,70 +36,68 @@ class Inspect extends Command
      */
     protected $cleanHandler;
 
-	protected function configure()
+    protected function configure()
     {
         $this->setName('aspect:inspect')
-	        ->setDescription('Inspect the register aspect.')
-	        ->setHelp('This command allows the joint point to be configured for the given aspect.');
+            ->setDescription('Inspect the register aspect.')
+            ->setHelp('This command allows the joint point to be configured for the given aspect.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $advices = Advice::all();
 
-    	$advices = Advice::all();
+        $output->writeln('================');
 
-    	$output->writeln('================');
+        $output->writeln([
+            '',
+            '<info>Cleaning old files !!!!</info>',
+            '',
+        ]);
 
-    	$output->writeln([
-    		'',
-    		'<info>Cleaning old files !!!!</info>',
-    		'',
-    	]);
+        $this->cleanDirectory();
 
-    	$this->cleanDirectory();
+        $codeHandler = $this->getCodeHandler();
 
-    	$codeHandler = $this->getCodeHandler();
+        foreach ($advices as $targetClass => $advice) {
+            $output->writeln("\t<info>Intercepting :: {$targetClass}</info>");
 
-    	foreach ($advices as $targetClass => $advice) {
+            try {
+                $target = $this->getContainer()->get($targetClass);
+            } catch (NotFoundExceptionInterface $e) {
+                $output->writeln("\t<comment>Oops!!! `{$targetClass}` :: has no bindings or binding not defined</comment>");
+                continue;
+            }
 
-    		$output->writeln("\t<info>Intercepting :: {$targetClass}</info>");
+            $namespace = get_class($target);
+            $className = $namespace.'\\Proxy';
 
-    		try {
-    			$target = $this->getContainer()->get($targetClass);	
-    		} catch(NotFoundExceptionInterface $e) {
-    			$output->writeln("\t<comment>Oops!!! `{$targetClass}` :: has no bindings or binding not defined</comment>");
-    			continue;
-    		}
+            $output->writeln("\t<info>Creating Proxy Class for {$targetClass}</info>");
 
-    		$namespace = get_class($target);
-    		$className = $namespace.'\\Proxy';
+            $code = $this->generateClass($className, $this->getClassMethods($target, array_flip(array_keys($advice))), $namespace);
 
-    		$output->writeln("\t<info>Creating Proxy Class for {$targetClass}</info>");
-
-    		$code = $this->generateClass($className, $this->getClassMethods($target, array_flip(array_keys($advice))), $namespace);
-
-    		if($codeHandler($namespace, 'Proxy', $code) === true) {
-    			//Advice::proxified($targetClass);
-    		}
-    		$output->writeln('');
-    	}
+            if ($codeHandler($namespace, 'Proxy', $code) === true) {
+                //Advice::proxified($targetClass);
+            }
+            $output->writeln('');
+        }
     }
 
     protected function generateClass($className, $methods, $extends)
     {
-    	$classCode  = new ClassGenerator();
+        $classCode  = new ClassGenerator();
 
-    	$classCode->setName($className)
-    		->setExtendedClass($extends)
-    		->addUse(Advice::class)
-    		->addTraits(['\\'.Proxified::class])
-    		->addMethods($methods);
+        $classCode->setName($className)
+            ->setExtendedClass($extends)
+            ->addUse(Advice::class)
+            ->addTraits(['\\'.Proxified::class])
+            ->addMethods($methods);
 
-    	$file = FileGenerator::fromArray([
-    		'classes'  => [$classCode],
-    	]);
+        $file = FileGenerator::fromArray([
+            'classes'  => [$classCode],
+        ]);
 
-    	return $file->generate();
+        return $file->generate();
     }
 
     /**
