@@ -10,6 +10,13 @@ class Advice {
 
     const AFTER = 'after';
 
+    /**
+     * Object Resolver Instance.
+     *
+     * @var callable
+     */
+    protected static $objectResolver;
+
 	/**
      * The registered advice for particular join point.
      *
@@ -102,7 +109,9 @@ class Advice {
         list($target, $method) = static::parseTarget($target);
 
         if(!$method) {
-            return [];
+            return isset(static::$advices[$target]) ?
+                static::$advices[$target]
+                : [];
         }
 
     	return isset(static::$advices[$target][$method]) ?
@@ -142,6 +151,27 @@ class Advice {
         }
 
         return false;
+    }
+
+    /**
+     * Get the Object Resolver Instance.
+     *
+     * @return \Closure 
+     */
+    public static function getObjectResolver()
+    {
+        return static::$objectResolver;
+    }
+
+    /**
+     * Set the Object Resolver instance.
+     *
+     * @param  \Closure   $objectResolver
+     * @return void
+     */
+    public static function setObjectResolver(\Closure $objectResolver)
+    {
+        static::$objectResolver = $objectResolver;
     }
 
 }

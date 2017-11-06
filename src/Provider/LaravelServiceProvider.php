@@ -16,6 +16,10 @@ class LaravelServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        Advice::setObjectResolver(function($instance) {
+            return app()->make($instance);
+        });
+
         $this->app->singleton('command.appect.inspect', function ($app) {
         	$inspect = new Inspect();
         	$inspect->setContainer($app);
