@@ -1,20 +1,20 @@
 # Aspect Me
 
 
-Intercept and change the behavior of a public method of a class before, after, or around that function call.
+Intercept and change the behavior of a public method of a class during before, after, or around function call.
 
 In aspect-oriented programming (AOP) is a programming paradigm that aims to increase modularity by allowing the separation of cross-cutting concerns. It does so by adding additional behavior to existing code (an advice) without modifying the code itself, instead separately specifying which code is modified via a "pointcut" specification. This allows behaviors that are not central to the business logic to be added to a program without cluttering the code, core to the functionality.
 
 
 ### Why APO?
 
-Consider you want change the output of a function in class or do something when the method is called. Usually we rewrites the class and extend the method definitions.
+Consider you want change the output of a function in class or do something when the method is called. Usually we rewrite the class and extend the method definitions in order to overwrite it.
 
 Class rewrites are popular because they allow a very specific redefinition of system functionality.
 
-There are, however, some problems with class rewrites. You can only rewrite a class only once. Once one module claims a method, that means other modules are out of luck.
+There are, however, some problems with class rewrites. You can only rewrite a class only once. Once one module claims a method, other modules are out of luck.
 
-This package allowes third party developers to create modules or packages that could listen for and change the behavior of the class method, so they do not conflict with one another.
+This package allows third party developers to create modules or packages that could listen for and change the behavior of the class method, so they do not conflict with one another.
 
 ### Limitations
 
@@ -38,7 +38,7 @@ Let's consider we have class called ```Post```
 ```php
 class Post {
 	
-	public function setTitle($title)
+    public function setTitle($title)
     {
     	$this->title = $title;
     }
@@ -51,7 +51,7 @@ class Post {
 ```
 
 
-We need to change the first character to uppercase, in this case we can make the changes after ```getTitle``` is been called. So we first let the system about it
+We need to change the first character to uppercase, in this case we can make the changes after ```getTitle``` is been called. So we first let the system know about it
 
 ```php
 \Aspect\Advice::after('change_post_title_to_uppercase', \Post::class.'@getTitle', function(\Post $subject,  $result, ...$args) {
@@ -68,7 +68,7 @@ $ aspect:inspect
 ```
 
 
-Ok, So now if we called the  ```getTitle``` from the  ```Post``` class through the DI the result will contiane  the first character to be uppercased.
+Ok, So now if we called the  ```getTitle``` from the  ```Post``` class through the DI the result will contain  the first character to be uppercased.
 
 ```php
 $post = $container->get(\Post::class);
@@ -140,7 +140,7 @@ It also means you can cancel the call to the original method, and substitute you
 **Note:** All the Advices can be prioritized by provding 4th argument between 10-100, Higher the value higher the priority.
 
 
-### Tntegration
+### Integration
 
 #### Laravel
 
