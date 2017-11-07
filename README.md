@@ -27,7 +27,7 @@ This package allowes third party developers to create modules or packages that c
 Via [composer](http://getcomposer.org):
 
 ```bash
-$ composer require sunel/aspsct-me
+$ composer require sunel/aspect-me
 ```
 
 
