@@ -20,7 +20,7 @@ This package allows third party developers to create modules or packages that co
 
 - This will work only on the system that uses dependency injection containers [PSR-11](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-11-container.md).
 - Can be used only on public methods.
-- Must be resolved through DI containers.
+- Class must be resolved through DI containers.
 
 ### Installation
 
@@ -30,31 +30,47 @@ Via [composer](http://getcomposer.org):
 $ composer require sunel/aspect-me
 ```
 
+For [#laravel](#laravel)
+
 
 ### How?
 
 Let's consider we have class called ```Post```
 
 ```php
-class Post {
+
+interface PostInterface {
+
+    public function setTitle($title);
+
+    public function getTitle();
+
+}
+
+
+class Post implements PostInterface {
 	
     public function setTitle($title)
     {
     	$this->title = $title;
     }
 
-	public function getTitle()
+    public function getTitle()
     {
     	return  $this->title;
     }
 }
+
+
+$container->bind(\PostInterface::class, \Post::class);
+
 ```
 
 
 We need to change the first character to uppercase, in this case we can make the changes after ```getTitle``` is been called. So we first let the system know about it
 
 ```php
-\Aspect\Advice::after('change_post_title_to_uppercase', \Post::class.'@getTitle', function(\Post $subject,  $result, ...$args) {
+\Aspect\Advice::after('change_post_title_to_uppercase', \PostInterface::class.'@getTitle', function(\PostInterface $subject,  $result, ...$args) {
     return ucfirst($result);
 }, 100);
 ```
@@ -71,7 +87,7 @@ $ aspect:inspect
 Ok, So now if we called the  ```getTitle``` from the  ```Post``` class through the DI the result will contain  the first character to be uppercased.
 
 ```php
-$post = $container->get(\Post::class);
+$post = $container->get(\PostInterface::class);
 
 $post->setTitle('aspect');
 
@@ -93,7 +109,7 @@ Even with systems like automatic constructor dependency injection, there’s no 
 This sort of problem is what the before plugin methods can solve. If the method does not change the argument for the observed method, it should return null.
 
 ```php
-\Aspect\Advice::before('trim_post_title', \Post::class.'@setTitle', function(\Post $subject, ...$args) {
+\Aspect\Advice::before('trim_post_title', \PostInterface::class.'@setTitle', function(\PostInterface $subject, ...$args) {
 	
 	# We trim the given title
     return [trim($args[0])];
@@ -106,7 +122,7 @@ This sort of problem is what the before plugin methods can solve. If the method 
 This is sort of like an observer for class method. The system will call after the ```getTitle``` method is called. You can use these methods to change the result of an observed method by modifying the original result and returning it at the end of the method.
 
 ```php
-\Aspect\Advice::after('change_post_title_to_uppercase', \Post::class.'@getTitle', function(\Post $subject,  $result, ...$args) {
+\Aspect\Advice::after('change_post_title_to_uppercase', \PostInterface::class.'@getTitle', function(\PostInterface $subject,  $result, ...$args) {
     return ucfirst($result);
 }, 100);
 ```
@@ -119,7 +135,7 @@ After methods have access to all the arguments of their observed methods. When t
 This runs the code in around methods before and after their observed methods. The around methods fire during, or as a replacement to the original method.
 
 ```php
-\Aspect\Advice::around('change_post_title', \Post::class.'@getTitle', function(\Post $subject,  callable $proceed, ...$args) {
+\Aspect\Advice::around('change_post_title', \PostInterface::class.'@getTitle', function(\PostInterface $subject,  callable $proceed, ...$args) {
 
 	echo 'Calling'.' -- before',"\n";
     $result = $proceed(...$args)
@@ -130,7 +146,7 @@ This runs the code in around methods before and after their observed methods. Th
 }, 100);
 ```
 
-The around plugin methods give you the ability, in a single place, to have code run both before the original method, and after the original method. How it does this is in the magic of the second parameter.
+The around plugin methods give you the ability, in a single place, to have code run both before the original method, and after the original method. How it does this is through the second parameter.
 
 This second parameter ```$proceed``` is an anonymous function ```Closure```. If you are using an around plugin method, you call/invoke this closure when you want the system to call the original method. You are responsible for forwarding the arguments from the plugin to the proceed callable.
 
@@ -153,13 +169,29 @@ You'll need to register the service provider, in your `config/app.php`:
 ]
 ```
 
+Add this to composer.json
+
+```json
+{
+    "autoload": {
+        "classmap": [
+            "resources/generated/"
+        ]
+    }
+}
+```
+
+Run this to let composer know about the new autoload
+
+```bash
+$ composer dump-autoload
+```
+
 For the artisan command 
 
 ```bash
 $ php artisan aspect:inspect
 ```
-
-
 
 
 
