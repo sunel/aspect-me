@@ -53,7 +53,9 @@ class LaravelServiceProvider extends ServiceProvider
         $advices = collect(Advice::all());
 
         $advices->keys()->each(function ($target) use ($contianer) {
-            $contianer->bind($target, $target.'\\Proxy');
+            if($contianer->has($target)) { 
+                $contianer->bind($target, $target.'\\Proxy');
+            }
         });
     }
 }
