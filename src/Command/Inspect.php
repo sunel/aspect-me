@@ -20,7 +20,7 @@ class Inspect extends Command
      *
      * @var \Psr\Container\ContainerInterface
      */
-    protected $contianer;
+    protected $container;
 
     /**
      * The Code Handler.
